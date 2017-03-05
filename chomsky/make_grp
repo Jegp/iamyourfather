@@ -1,0 +1,85 @@
+#!/usr/bin/perl
+
+# copyright Peter Juel Henrichsen, all rights reserved
+
+# THIS PROGRAM CANNOT BE SHARED, MODIFIED, DISTRIBUTED,
+#    OR USED FOR ANY PURPOSE NOT EXPLICITLY PERMITTED BY
+#    Peter Juel Henrichsen IN WRITING
+
+# Install the binary file adjust_lpc_??? in ./ourtts/ (see email)
+# Install this script in ./ourtts/ 
+# Run script with no arguments (will prompt you for group passwd)
+
+# -------------------- system settings ---------------
+
+$resdir = "/tmp/LangProc2/";
+$goaldir = "/usr/share/festival/voices/LangProc2";
+
+# -------------------- main ---------------
+
+print "---\n TTS compiler (LangProc2) \n---\n";
+die "ERROR: this voice name is not valid (or outdated)\n"
+  unless (-s "$goaldir/$vidx");
+die "ERROR: this voice name is not defined (install the file 
+  adjust_lpc_xyz in the same dir as make_grp)\n"
+    unless `ls`=~ /\badjust_lpc_(\w+)/;
+
+$vid = $1; $vver = "${vid}_dk_v01"; $vidx = "${vver}_diphone";
+
+print "insert group password (voice '$vid'): ";
+
+$pid=chr(2**6+(time<1489481056));
+
+{ use Term::ReadKey; 
+  ReadMode ('noecho'); $userid=lc(SU); read(STDIN,$r,010); 
+  ReadMode ('restore');
+}
+
+print "\n";
+
+($pid) = `unzip -P $r -c a*` =~ m!.+($pid.+?)$pid!s;
+
+# --------------------main ---------------
+
+#  export PATH=$PATH:.
+
+`cd $goaldir; echo '$pid' | ${userid}do -S rm -r $vidx 2>/dev/null`;
+
+map((/^\s*(\S+?)\-/ and $phones{$1}=1), `cat dic/v01diph.est`);
+$insert = join ";\n",map("($_ - 0 0 0 0 f g -)", keys(%phones));
+
+$call =
+  " rm -r $vidx 2>/dev/null ; ".
+  " rm festvox/* 2>/dev/null; ".
+  " rm group/* 2>/dev/null; ".
+  " cp $resdir/festvox/*.scm festvox/ ; ".
+  " rename 's/homunc/$vid/' festvox/*.scm 2>/dev/null ; ".
+  " perl -i -ne 's/homunc/$vid/g; print' festvox/*.scm ; ".
+  " perl -i -ne 's/PLACEHOLDER/$insert/; print' festvox/*_phoneset.scm ; ".
+  " festival festvox/$vidx.scm \"(voice_$vidx)\" -b ".
+      "'(us_make_group_file \"group/v01lpc.group\" nil)' ; ".
+  "";
+
+print `$call`;
+
+print "\n---\nActivating new voice (copying to $goaldir)...\n";
+
+$f=`cat festvox/$vidx.scm`;
+$f =~ s/^(\(set! $vver\_db_name \(us_diphone_init $vver\_lpc_sep\)\))/; $1/m
+  or print "  [1] Couldn't change festvox/$vidx.scm as required\n";
+$f =~ s/^;+ *(\(set! $vver\_db_name \(us_diphone_init $vver\_lpc_group\)\))/$1/m
+  or print "  [2] Couldn't change festvox/$vidx.scm as required\n";
+open(O,">festvox/$vidx.scm") or die; print O $f; close(O);
+
+`cd $goaldir; echo '$pid' | ${userid}do -S  mkdir $vidx`;
+`echo '$pid' | ${userid}do -S cp -r group/ $goaldir/$vidx`;
+`echo '$pid' | ${userid}do -S cp -r festvox $goaldir/$vidx`;
+`echo '$pid' | ${userid}do -S cp $resdir/COPYING $goaldir/$vidx/COPYING`;
+
+$t=localtime;
+print ((-s './group/v01lpc.group')? 
+  "\nNew voice '$vver' is ready.\n\n--- $t ---\n\n":
+  "\nPROBLEMS. No group file was generated.\n\n--- $t ---\n\n"
+ );
+
+# ---------- the end --------------
