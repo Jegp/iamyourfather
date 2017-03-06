@@ -17,18 +17,22 @@ echo "Performing pitch analysis..."
 ./bin/make_pm_wave wav/*.wav
 exit_if_error
 
-echo "Contents of pm/"
+echo "Contents of pm/:"
 ls -lsh pm/
 
 echo "Performing LPC analysis..."
 ./bin/make_lpc wav/*.wav
 exit_if_error
 
-echo "Contents of pm/"
+echo "Contents of pm/:"
 ls -lsh lpc/
 
-echo "Compiling TTS (group files)"
+echo "Compiling TTS (group files)..."
 ./make_grp
+exit_if_error
+
+echo "Synthesizing phrase..."
+festival -b phrase.scm
 exit_if_error
 
 echo "Done!"
