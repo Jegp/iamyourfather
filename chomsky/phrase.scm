@@ -1,6 +1,6 @@
 ; This file contains control information
 ; for synthesizing a sentence.
-(voice_ourtts_dk_v01_diphone)
+(voice_chomsky_dk_v01_diphone)
 (set! utt1 (Utterance Segments (
   ; phrase: I am your father
   ; (phone duration (0 pitch))
