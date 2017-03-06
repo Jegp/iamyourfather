@@ -1,6 +1,15 @@
 #### Language Processing 2 | Group 3
 ## *chomsky* TTS
 
+
+##### TL; DR
+
+	> ssh abc123@peter-server.com [...]
+	$ git clone (this repo)
+	$ cd iamyourfather/chomsky
+	$ ./run.sh
+
+
 ##### Project structure
 
     .
